@@ -4,17 +4,20 @@ from leafnode import LeafNode
 import re
 
 def main(): 
-    dummy_node = TextNode("The women *who I adore* is Stacey", "text", url="https://theloveofmylife.com")
-    print(split_nodes_delimiter([dummy_node], "*", "italic"))
-    dummy_image_text ="This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) doodahdiii doo doo and ![another](https://i.goingagain.com/zjjcJKZ.png)"
-    print(extract_markdown_images(dummy_image_text))
-    dummy_link_text = "This is text with a [link](https://www.example.com) and another one doodahdiii doo doo and [another](https://i.goingagain.com/zjjcJKZ.png)"
-    print(extract_markdown_links(dummy_link_text))
+    text = "This is **text** with an *italic* word and a `code block` and an ![image](https://i.imgur.com/zjjcJKZ.png) and a [link](https://boot.dev)"
+    text_to_textnodes(text)
 
-    image_node = TextNode(dummy_image_text, "text")
-    print(split_nodes_image([image_node]))
-    link_node = TextNode(dummy_link_text, "text")
-    print(split_nodes_link([link_node]))
+def text_to_textnodes(text):
+    nodes = []
+    nodes.append(TextNode(text, "text"))
+    nodes = split_nodes_delimiter(nodes, "**", "bold")
+    nodes = split_nodes_delimiter(nodes, "*", "italic")
+    nodes = split_nodes_delimiter(nodes, "`", "code")
+    nodes = split_nodes_image(nodes)
+    nodes = split_nodes_link(nodes)
+
+    print(nodes)
+    return nodes
 
 def text_node_to_html_node(text_node):
 
@@ -45,6 +48,9 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
         if not isinstance(node, TextNode):
             new_nodes.append(node)
             continue
+        if node.text_type != "text":
+            new_nodes.append(node)
+            continue
         split_node = node.text.split(delimiter)
         if len(split_node) % 2 == 0:
             raise ValueError("Invalid markdown, formatted section not closed")
@@ -56,16 +62,22 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
                 if len(section) > 0:
                     new_nodes.append(TextNode(section, "text"))
 
+    # print(new_nodes)
     return new_nodes
 
 def split_nodes_image(old_nodes):
     new_nodes = []
-
     for node in old_nodes:
         if not isinstance(node, TextNode):
             new_nodes.append(node)
             continue
+        if node.text_type != "text":
+            new_nodes.append(node)
+            continue
         tupples = extract_markdown_images(node.text)
+        if len(tupples) == 0:
+            new_nodes.append(node)
+            continue
         for tup in tupples:
             split_node = node.text.split(f"![{tup[0]}]({tup[1]})",1)
             if len(split_node) % 2 == 1:
@@ -75,8 +87,6 @@ def split_nodes_image(old_nodes):
             new_nodes.append(TextNode(tup[0], "image", tup[1]))
             if len(split_node[1]) > 0:
                 new_nodes.append(TextNode(split_node[1], "text"))
-
-                
     return new_nodes
 
 def split_nodes_link(old_nodes):
@@ -86,7 +96,13 @@ def split_nodes_link(old_nodes):
         if not isinstance(node, TextNode):
             new_nodes.append(node)
             continue
+        if node.text_type != "text":
+            new_nodes.append(node)
+            continue
         tupples = extract_markdown_links(node.text)
+        if len(tupples) == 0:
+            new_nodes.append(node)
+            continue
         for tup in tupples:
             split_node = node.text.split(f"[{tup[0]}]({tup[1]})",1)
             if len(split_node) % 2 == 1:
@@ -96,8 +112,7 @@ def split_nodes_link(old_nodes):
             new_nodes.append(TextNode(tup[0], "link", tup[1]))
             if len(split_node[1]) > 0:
                 new_nodes.append(TextNode(split_node[1], "text"))
-
-                
+            
     return new_nodes
 
 def extract_markdown_images(text):
