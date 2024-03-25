@@ -4,8 +4,33 @@ from leafnode import LeafNode
 import re
 
 def main(): 
-    text = "This is **text** with an *italic* word and a `code block` and an ![image](https://i.imgur.com/zjjcJKZ.png) and a [link](https://boot.dev)"
-    text_to_textnodes(text)
+    # text = "This is **text** with an *italic* word and a `code block` and an ![image](https://i.imgur.com/zjjcJKZ.png) and a [link](https://boot.dev)"
+    # text_to_textnodes(text)
+    markdown = (
+    """This is **bolded** paragraph
+
+    This is another paragraph with *italic* text and `code` here
+    This is the same paragraph on a new line
+
+    * This is a list
+    * with items"""
+    )
+    markdown_to_blocks(markdown)
+
+def markdown_to_blocks(markdown):
+    new_blocks = []
+    original_blocks = markdown.split("\n\n")
+    for o_block in original_blocks:
+        block = ""
+        lines = o_block.split("\n")
+        for i, line in enumerate(lines):
+            block += line.strip()
+            if i != len(lines)-1:
+                block += "\n"
+        new_blocks.append(block)
+    print(new_blocks)
+
+
 
 def text_to_textnodes(text):
     nodes = []
