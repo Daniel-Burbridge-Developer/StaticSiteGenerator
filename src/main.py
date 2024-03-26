@@ -3,41 +3,12 @@ from leafnode import LeafNode
 from htmlnode import HTMLNode
 
 import re
+import os
 
 def main(): 
-    # text = "This is **text** with an *italic* word and a `code block` and an ![image](https://i.imgur.com/zjjcJKZ.png) and a [link](https://boot.dev)"
-    # text_to_textnodes(text)
-    markdown = (
-    """
-    This is **bolded** paragraph
+    print(os.listdir())
 
-    This is another paragraph with *italic* text and `code` here
-    This is the same paragraph on a new line
-
-    1. this is an ordered list
-    2. with stuff
-
-    * This is a unordered list
-    * with items
-
-    > This is a quote
-
-    ``` this is a codeblock ```
-
-    # this is a heading with 1 hash
-    
-    ### this is a heading with 3 hashs
-
-    ###### this is a heading with 6 hashs
-
-    ######### this isn't a heading it has 9 hashs and therefore is a paragraph
-
-    This is just a normal paragraph
-    """
-    )
-
-    print(markdown_to_html_node(markdown))
-
+# this should all not be in main, let's hide it down here for now.
 def markdown_to_html_node(markdown):
     base_node = HTMLNode("", tag="div")
     base_node.children = []
