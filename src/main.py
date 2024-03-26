@@ -4,9 +4,28 @@ from htmlnode import HTMLNode
 
 import re
 import os
+import shutil
 
 def main(): 
-    print(os.listdir())
+    if os.path.exists("./public"):
+        shutil.rmtree("./public")
+    os.mkdir("public")
+    recursive_copy("static")
+
+
+
+def recursive_copy(directory):
+    working_dir = os.path.join("./", directory+"/")
+    if not os.path.exists(f"./public/{directory}"):
+        os.mkdir(f"./public/{directory}")
+    dirs = (os.listdir(working_dir))
+    for d in dirs:
+        if os.path.isfile(f"{working_dir}{d}"):
+            shutil.copy(f"{working_dir}{d}", f"./public/{directory}/{d}")
+        else:
+            recursive_copy(f'{directory}/{d}')
+
+
 
 # this should all not be in main, let's hide it down here for now.
 def markdown_to_html_node(markdown):
