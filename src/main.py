@@ -7,16 +7,38 @@ def main():
     # text = "This is **text** with an *italic* word and a `code block` and an ![image](https://i.imgur.com/zjjcJKZ.png) and a [link](https://boot.dev)"
     # text_to_textnodes(text)
     markdown = (
-    """This is **bolded** paragraph
+    """
+    This is **bolded** paragraph
 
     This is another paragraph with *italic* text and `code` here
     This is the same paragraph on a new line
 
-    * This is a list
-    * with items"""
-    )
-    markdown_to_blocks(markdown)
+    1. this is an ordered list
+    2. with stuff
 
+    * This is a unordered list
+    * with items
+
+    > This is a quote
+
+    ``` this is a codeblock ```
+
+    # this is a heading with 1 hash
+    
+    ### this is a heading with 3 hashs
+
+    ###### this is a heading with 6 hashs
+
+    ######### this isn't a heading it has 9 hashs and therefore is a paragraph
+
+    This is just a normal paragraph
+    """
+    )
+    blocks = markdown_to_blocks(markdown)
+
+    for block in blocks:
+        print(block_to_block_type(block))
+    
 def markdown_to_blocks(markdown):
     new_blocks = []
     original_blocks = markdown.split("\n\n")
@@ -27,8 +49,29 @@ def markdown_to_blocks(markdown):
             block += line.strip()
             if i != len(lines)-1:
                 block += "\n"
-        new_blocks.append(block)
-    print(new_blocks)
+        if block != "":
+            new_blocks.append(block)
+    return new_blocks
+
+def block_to_block_type(block):
+    heading = r"^#{1,6}"
+    code = r"^`{3}.*`{3}$"
+    quote = r"^>"
+    unordered_list = r"^\*|-"
+    ordered_list = r"^[0-9]\."
+
+    if re.match(heading, block):
+        return "heading"
+    if re.match(code, block):
+        return "code"
+    if re.match(quote, block):
+        return "quote"
+    if re.match(unordered_list, block):
+        return "unordered_list"
+    if re.match(ordered_list, block):
+        return "ordered_list"
+    
+    return "paragraph"
 
 
 
