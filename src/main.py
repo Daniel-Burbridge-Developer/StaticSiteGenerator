@@ -7,86 +7,127 @@ import re
 def main(): 
     # text = "This is **text** with an *italic* word and a `code block` and an ![image](https://i.imgur.com/zjjcJKZ.png) and a [link](https://boot.dev)"
     # text_to_textnodes(text)
-    # markdown = (
-    # """
-    # This is **bolded** paragraph
+    markdown = (
+    """
+    This is **bolded** paragraph
 
-    # This is another paragraph with *italic* text and `code` here
-    # This is the same paragraph on a new line
+    This is another paragraph with *italic* text and `code` here
+    This is the same paragraph on a new line
 
-    # 1. this is an ordered list
-    # 2. with stuff
+    1. this is an ordered list
+    2. with stuff
 
-    # * This is a unordered list
-    # * with items
+    * This is a unordered list
+    * with items
 
-    # > This is a quote
+    > This is a quote
 
-    # ``` this is a codeblock ```
+    ``` this is a codeblock ```
 
-    # # this is a heading with 1 hash
+    # this is a heading with 1 hash
     
-    # ### this is a heading with 3 hashs
+    ### this is a heading with 3 hashs
 
-    # ###### this is a heading with 6 hashs
+    ###### this is a heading with 6 hashs
 
-    # ######### this isn't a heading it has 9 hashs and therefore is a paragraph
+    ######### this isn't a heading it has 9 hashs and therefore is a paragraph
 
-    # This is just a normal paragraph
-    # """
-    # )
-    # blocks = markdown_to_blocks(markdown)
+    This is just a normal paragraph
+    """
+    )
 
-    # for block in blocks:
-    #     print(block_to_block_type(block))
+    print(markdown_to_html_node(markdown))
 
-    heading = "### THIS IS A HEADING"
-    print(heading_to_htmlnode(heading))
+def markdown_to_html_node(markdown):
+    base_node = HTMLNode("", tag="div")
+    base_node.children = []
+    blocks = markdown_to_blocks(markdown)
+    for block in blocks:
+        block_type = block_to_block_type(block)
+        node = None
+        if block_type == "paragraph":
+            node = paragraph_to_htmlnode(block)
+        if block_type == "heading":
+            node = heading_to_htmlnode(block)
+        if block_type == "code":
+            node = code_to_htmlnode(block)
+        if block_type == "quote":
+            node = quote_to_htmlnode(block)
+        if block_type == "unordered_list":
+            node = ul_to_htmlnode(block)
+        if block_type == "ordered_list":
+            node = ol_to_htmlnode(block)
+        
 
-    code = "``` this is a codeblock ```"
-    print(code_to_htmlnode(code))
-
-    quote = "> This is a quote"
-    print(quote_to_htmlnode(quote))
-
-    # UL For sure not working
-    ul = """* This is a unordered list
-    * with items"""
-    print(ul_to_htmlnode(ul))
-
-    #OL For sure not working
-    ol ="""1. this is an ordered list
-    2. with stuff"""
-    print(ol_to_htmlnode(ol))
+        # THIS WOULD BE MUCH BETTER TAKEN CARE OF WITH A RECURSIVE THINGY
+        # ALSO FAIRLY SURE THIS IS BROKEN
+        text_nodes = text_to_textnodes(node.value)
+        if len(text_nodes) > 0:
+            if node.children is None:
+                node.children = []
+            for tn in text_nodes:
+                node.children.append(text_node_to_html_node(tn))
+        if node.children is not None:
+            for n in node.children:
+                text_nodes = text_to_textnodes(n.value)
+                if len(text_nodes) > 0:
+                    if n.children is None:
+                        n.children = []
+                    for tn in text_to_textnodes(n.value):
+                        n.children.append(text_node_to_html_node(tn))
+        base_node.children.append(node)
+            
+    return base_node
 
 def paragraph_to_htmlnode(block):
-    pass
+    return HTMLNode(block, tag="p")
 
 def heading_to_htmlnode(block):
-    heading = r"^#{1,6}"
-    value = re.sub(heading, "", block)
-    return HTMLNode(value, tag="heading")
+    heading_capture = r"^(#{1,6}?)"
+    captured = re.findall(heading_capture, block)
+    count_of_hash = len(captured[0])
+    value = re.sub(captured[0], "", block)
+    return HTMLNode(value, tag=f"h{count_of_hash}")
 
 def code_to_htmlnode(block):
     code = r"^`{3}|`{3}$"
     value = re.sub(code, "", block)
-    return HTMLNode(value, tag="code")
+    return HTMLNode(value, tag="pre")
 
 def quote_to_htmlnode(block):
     quote = r"^>"
     value = re.sub(quote, "", block)
-    return HTMLNode(value, tag="quote")
+    return HTMLNode(value, tag="blockquote")
 
 def ul_to_htmlnode(block):
-    ul = r"^\*|^\-"
-    value = re.sub(ul, "", block)
-    # this might need to be unordered_list not ul I'm not sure
-    return HTMLNode(value, tag="ul")
+    ul_capture = r"(\* ?)|(\- ?)"
+    ul_node = HTMLNode("", tag="ul")
+    ul_node.children = []
+
+    subbed = re.sub(ul_capture, "<li>", block)
+    sublists = subbed.split("<li>")
+    
+    if len(sublists) > 0:
+        for sl in (sublists):
+            ul_node.children.append(HTMLNode(sl, tag="li"))
+        return ul_node
+
+    return ul_node
 
 def ol_to_htmlnode(block):
-    ol = r"^[0-9]\."
-    value = re.sub(ol, "", block)
-    return HTMLNode(value, tag="ol")
+    ol_capture = r"([0-9]\.{1}?)"
+    ol_node = HTMLNode("", tag="ol")
+    ol_node.children = []
+
+    subbed = re.sub(ol_capture, "<li>", block)
+    sublists = subbed.split("<li>")
+
+    if len(sublists) > 0:
+        for sl in (sublists):
+            ol_node.children.append(HTMLNode(sl, tag="li"))
+        return ol_node
+    
+    return ol_node
 
 def markdown_to_blocks(markdown):
     new_blocks = []
@@ -133,12 +174,11 @@ def text_to_textnodes(text):
     nodes = split_nodes_image(nodes)
     nodes = split_nodes_link(nodes)
 
-    print(nodes)
     return nodes
 
 def text_node_to_html_node(text_node):
 
-    value = text_node.value
+    value = text_node.text
     tag = text_node.text_type
     url = text_node.url
 
