@@ -1,44 +1,93 @@
 from textnode import TextNode
 from leafnode import LeafNode
+from htmlnode import HTMLNode
 
 import re
 
 def main(): 
     # text = "This is **text** with an *italic* word and a `code block` and an ![image](https://i.imgur.com/zjjcJKZ.png) and a [link](https://boot.dev)"
     # text_to_textnodes(text)
-    markdown = (
-    """
-    This is **bolded** paragraph
+    # markdown = (
+    # """
+    # This is **bolded** paragraph
 
-    This is another paragraph with *italic* text and `code` here
-    This is the same paragraph on a new line
+    # This is another paragraph with *italic* text and `code` here
+    # This is the same paragraph on a new line
 
-    1. this is an ordered list
-    2. with stuff
+    # 1. this is an ordered list
+    # 2. with stuff
 
-    * This is a unordered list
-    * with items
+    # * This is a unordered list
+    # * with items
 
-    > This is a quote
+    # > This is a quote
 
-    ``` this is a codeblock ```
+    # ``` this is a codeblock ```
 
-    # this is a heading with 1 hash
+    # # this is a heading with 1 hash
     
-    ### this is a heading with 3 hashs
+    # ### this is a heading with 3 hashs
 
-    ###### this is a heading with 6 hashs
+    # ###### this is a heading with 6 hashs
 
-    ######### this isn't a heading it has 9 hashs and therefore is a paragraph
+    # ######### this isn't a heading it has 9 hashs and therefore is a paragraph
 
-    This is just a normal paragraph
-    """
-    )
-    blocks = markdown_to_blocks(markdown)
+    # This is just a normal paragraph
+    # """
+    # )
+    # blocks = markdown_to_blocks(markdown)
 
-    for block in blocks:
-        print(block_to_block_type(block))
-    
+    # for block in blocks:
+    #     print(block_to_block_type(block))
+
+    heading = "### THIS IS A HEADING"
+    print(heading_to_htmlnode(heading))
+
+    code = "``` this is a codeblock ```"
+    print(code_to_htmlnode(code))
+
+    quote = "> This is a quote"
+    print(quote_to_htmlnode(quote))
+
+    # UL For sure not working
+    ul = """* This is a unordered list
+    * with items"""
+    print(ul_to_htmlnode(ul))
+
+    #OL For sure not working
+    ol ="""1. this is an ordered list
+    2. with stuff"""
+    print(ol_to_htmlnode(ol))
+
+def paragraph_to_htmlnode(block):
+    pass
+
+def heading_to_htmlnode(block):
+    heading = r"^#{1,6}"
+    value = re.sub(heading, "", block)
+    return HTMLNode(value, tag="heading")
+
+def code_to_htmlnode(block):
+    code = r"^`{3}|`{3}$"
+    value = re.sub(code, "", block)
+    return HTMLNode(value, tag="code")
+
+def quote_to_htmlnode(block):
+    quote = r"^>"
+    value = re.sub(quote, "", block)
+    return HTMLNode(value, tag="quote")
+
+def ul_to_htmlnode(block):
+    ul = r"^\*|^\-"
+    value = re.sub(ul, "", block)
+    # this might need to be unordered_list not ul I'm not sure
+    return HTMLNode(value, tag="ul")
+
+def ol_to_htmlnode(block):
+    ol = r"^[0-9]\."
+    value = re.sub(ol, "", block)
+    return HTMLNode(value, tag="ol")
+
 def markdown_to_blocks(markdown):
     new_blocks = []
     original_blocks = markdown.split("\n\n")
