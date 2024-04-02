@@ -1,6 +1,7 @@
 from textnode import TextNode
 from leafnode import LeafNode
 from htmlnode import HTMLNode
+from parentnode import ParentNode
 
 import re
 import os
@@ -9,9 +10,8 @@ import shutil
 def main(): 
     # clean_root()
     # recursive_copy("static")
+    generate_page('./content/index.md', 'template.html', './public/index.html')
 
-    title = extract_title("# this is my heading")
-    generate_page_dummy(supersecretdeletemefunction())
 
 def clean_root():
     if os.path.exists("./public"):
@@ -40,19 +40,33 @@ def extract_title(markdown):
     raise Exception("markdown must contain h1 tag")
 
 def generate_page(from_path, template_path, dest_path):
-    print(f"Generating page from {from_path} to {dest_path}")
+    print(f"Generating page from {from_path} to {dest_path} using {template_path}")
 
+    title_finder = r"(\{\{ Title \}\}?)"
+    content_finder = r"(\{\{ Content \}\})"
+    write_to_file = ""
     with open(f"{from_path}") as markdown:
+        rm = markdown.read()
         with open(f"{template_path}") as template:
-            base_node = markdown_to_html_node(markdown)
-            html = base_node.to_html
-            print(html)
+            tm =template.read()
+            base_node = markdown_to_html_node(rm)
+            html = base_node.to_html()
+            title = extract_title(rm)
+            write_to_file = re.sub(tm, title_finder, title)
+            write_to_file = re.sub(write_to_file, content_finder, html)
+
+            try:
+                with open(dest_path, "w") as t:
+                    t.write(write_to_file)
+                    t.flush()  # Ensure data is written to disk
+            except OSError as e:
+                print(f"Error writing to file: {e}")
 
 
 
 # this should all not be in main, let's hide it down here for now.
 def markdown_to_html_node(markdown):
-    base_node = HTMLNode("", tag="div")
+    base_node = ParentNode("", tag="div")
     base_node.children = []
     blocks = markdown_to_blocks(markdown)
     for block in blocks:

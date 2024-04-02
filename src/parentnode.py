@@ -11,10 +11,10 @@ class ParentNode(HTMLNode):
         
         if self.children == None:
             raise ValueError("This absolutely should never happen *no children on parent node*")
-        
-        mybigstring = ""
+
+        my_big_string = ""
         for child in self.children:
-            mybigString += f"<{self.tag}{self.props_to_html()}>{child.to_html()}</{self.tag}>"
-        return mybigstring
+            my_big_string += f"<{self.tag}{self.props_to_html()}>{child.to_html()}</{self.tag}>"
+        return my_big_string
         
         
